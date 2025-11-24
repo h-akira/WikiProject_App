@@ -1,0 +1,18 @@
+version: 0.2
+
+env:
+  variables:
+    USE_DSQL: 'true'
+    USE_MOCK: 'false'
+  parameter-store:
+    DEBUG: /Django/env/DEBUG
+
+phases:
+  install:
+    runtime-versions:
+      python: 3.13
+  build:
+    commands:
+      - echo "Building and deploying Wiki Project App..."
+      - sam build
+      - sam deploy --no-confirm-changeset --no-fail-on-empty-changeset --parameter-overrides ParameterKey=DEBUG,ParameterValue=$DEBUG ParameterKey=UseDSQL,ParameterValue=$USE_DSQL ParameterKey=UseMock,ParameterValue=$USE_MOCK
