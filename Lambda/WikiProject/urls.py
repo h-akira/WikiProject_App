@@ -14,9 +14,24 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
-from django.contrib import admin
+import os
 from django.urls import path
+from django.http import JsonResponse
+
+# Check if DSQL mode is enabled
+USE_DSQL = os.environ.get('USE_DSQL', 'false').lower() == 'true'
+
+
+def health_check(request):
+  """Simple health check endpoint"""
+  return JsonResponse({'status': 'ok'})
+
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
+  path('health/', health_check, name='health_check'),
 ]
+
+# Only include admin in non-DSQL mode (local development)
+if not USE_DSQL:
+  from django.contrib import admin
+  urlpatterns.append(path('admin/', admin.site.urls))
