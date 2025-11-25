@@ -44,7 +44,8 @@ FORCE_SCRIPT_NAME = os.environ.get('SCRIPT_NAME', '')
 
 if USE_DSQL:
   INSTALLED_APPS = [
-    'accounts.apps.AccountsConfig'  # Custom app
+    'accounts.apps.AccountsConfig',  # Custom app
+    'wiki.apps.WikiConfig'  # Custom app
   ]
   MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -60,7 +61,8 @@ else:
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'accounts.apps.AccountsConfig'  # Custom app
+    'accounts.apps.AccountsConfig',  # Custom app
+    'wiki.apps.WikiConfig'  # Custom app
   ]
 
   MIDDLEWARE = [

@@ -6,13 +6,35 @@ Compatible with DSQL (no session dependency)
 import jwt
 from jwt import PyJWKClient
 from django.conf import settings
-from django.contrib.auth.models import AnonymousUser
 from django.http import JsonResponse
 from accounts.models import User
 import boto3
 import hmac
 import hashlib
 import base64
+
+
+class AnonymousUser:
+  """
+  Custom AnonymousUser class to avoid django.contrib.contenttypes dependency
+  Minimal implementation compatible with DSQL
+  """
+  @property
+  def is_authenticated(self):
+    return False
+
+  @property
+  def is_anonymous(self):
+    return True
+
+  def __str__(self):
+    return 'AnonymousUser'
+
+  def __eq__(self, other):
+    return isinstance(other, self.__class__)
+
+  def __hash__(self):
+    return 1
 
 
 def calculate_secret_hash(username, client_id, client_secret):
