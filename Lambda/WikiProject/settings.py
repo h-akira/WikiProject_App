@@ -13,7 +13,6 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 from pathlib import Path
 import os
 import boto3
-ssm_client = boto3.client('ssm')
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -23,18 +22,18 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = ssm_client.get_parameter(Name='/Django/secret_key')['Parameter']['Value']
+SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', 'django-insecure-local-dev-key-change-in-production')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.environ.get('DEBUG', 'false').lower() == 'true'
+DEBUG = os.environ.get('DEBUG', 'true').lower() == 'true'
 
 ALLOWED_HOSTS = ["*"]
 
 # カスタム変数
 USE_DSQL = os.environ.get('USE_DSQL', 'false').lower() == 'true'
-COGNITO_USER_POOL_ID = ssm_client.get_parameter(Name='/Cognito/user_pool_id')['Parameter']['Value']
-COGNITO_CLIENT_ID = ssm_client.get_parameter(Name='/Cognito/client_id')['Parameter']['Value']
-COGNITO_CLIENT_SECRET = ssm_client.get_parameter(Name='/Cognito/client_secret')['Parameter']['Value']
+COGNITO_USER_POOL_ID = os.environ.get('COGNITO_USER_POOL_ID', 'local-pool-id')
+COGNITO_CLIENT_ID = os.environ.get('COGNITO_CLIENT_ID', 'local-client-id')
+COGNITO_CLIENT_SECRET = os.environ.get('COGNITO_CLIENT_SECRET', 'local-client-secret')
 AWS_REGION = boto3.session.Session().region_name
 
 # API Gatewayを直接呼び出す用
@@ -117,7 +116,7 @@ WSGI_APPLICATION = 'WikiProject.wsgi.application'
 if USE_DSQL:
   # Aurora DSQL configuration for Lambda
   # Reference: https://github.com/awslabs/aurora-dsql-django
-  DSQL_CLUSTER_ENDPOINT = ssm_client.get_parameter(Name='/DSQL/cluster_endpoint')['Parameter']['Value']
+  DSQL_CLUSTER_ENDPOINT = os.environ.get('DSQL_CLUSTER_ENDPOINT')
   DATABASES = {
     'default': {
       'ENGINE': 'aurora_dsql_django',
