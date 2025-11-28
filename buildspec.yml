@@ -11,6 +11,17 @@ phases:
   install:
     runtime-versions:
       python: 3.13
+    commands:
+      - echo "Installing dependencies..."
+      - cd Lambda
+      - pip install -r requirements.txt -t .
+      - cd ..
+  pre_build:
+    commands:
+      - echo "Running database migrations..."
+      - cd Lambda
+      - python manage.py migrate --noinput
+      - cd ..
   build:
     commands:
       - echo "Building and deploying Wiki Project App..."

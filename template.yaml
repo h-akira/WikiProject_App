@@ -255,7 +255,6 @@ Resources:
               - Effect: Allow
                 Action:
                   - "dsql:DbConnect"
-                  - "dsql:DbConnectAdmin"
                 Resource: "*"
               # - Effect: Allow
               #   Action:

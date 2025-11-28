@@ -1,9 +1,6 @@
 import os
 import boto3
-import logging
 from moto import mock_aws
-
-logger = logging.getLogger(__name__)
 
 # Load SSM parameters into environment variables before Django initialization
 USE_MOCK = os.environ.get('USE_MOCK', 'false').lower() == 'true'
@@ -37,44 +34,6 @@ from WikiProject.asgi import application
 mangum_handler = Mangum(application, lifespan="off")
 
 
-def run_migrations():
-  """
-  Run Django database migrations
-
-  Returns:
-    dict: Response with migration status and output
-  """
-  import django
-  django.setup()
-  from django.core.management import call_command
-  from io import StringIO
-
-  logger.info("Running database migrations...")
-  output = StringIO()
-  try:
-    call_command('migrate', stdout=output, interactive=False)
-    result = output.getvalue()
-    logger.info(f"Migration completed successfully:\n{result}")
-    return {
-      'statusCode': 200,
-      'body': {
-        'status': 'success',
-        'output': result
-      }
-    }
-  except Exception as e:
-    error_output = output.getvalue()
-    logger.error(f"Migration failed: {e}\n{error_output}")
-    return {
-      'statusCode': 500,
-      'body': {
-        'status': 'error',
-        'error': str(e),
-        'output': error_output
-      }
-    }
-
-
 def lambda_handler(event, context):
   """
   AWS Lambda handler function
@@ -84,12 +43,8 @@ def lambda_handler(event, context):
     context: Lambda context object
 
   Returns:
-    API Gateway response or migration result
+    API Gateway response
   """
-  # Check if this is a migration request
-  if event.get('action') == 'migrate':
-    return run_migrations()
-
   # Extract API Gateway stage name from event and set as SCRIPT_NAME
   # This allows Django's FORCE_SCRIPT_NAME to work correctly
   request_context = event.get('requestContext', {})
