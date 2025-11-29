@@ -108,6 +108,10 @@ def login_page(request):
   GET: Display login form
   POST: Process login with Cognito
   """
+  # Already logged in -> redirect to home
+  if request.user.is_authenticated:
+    return redirect('/')
+
   if request.method == 'POST':
     username = request.POST.get('username')
     password = request.POST.get('password')
@@ -217,6 +221,10 @@ def signup_page(request):
   GET: Display signup form
   POST: Process signup with Cognito
   """
+  # Already logged in -> redirect to home
+  if request.user.is_authenticated:
+    return redirect('/')
+
   if request.method == 'POST':
     username = request.POST.get('username')
     email = request.POST.get('email')
