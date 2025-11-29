@@ -1,0 +1,12 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ page.title }}{% endblock title %}
+{% block content %}
+<div class="padding-all">
+  <h1 class="title is-1 has-text-centered">{{ message }}</h1>
+  <div class="img-center">
+    <img src="{% static 'images/not_found.png' %}">
+  </div>
+</div>
+{% endblock content %}

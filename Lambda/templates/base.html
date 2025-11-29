@@ -1,0 +1,80 @@
+{% load static %}
+<!doctype html>
+<html lang="ja" class="has-navbar-fixed-top">
+  <head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!-- Bulma css -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{% static 'css/custom.css' %}">
+
+    <!-- Extra CSS -->
+    {% block extra_css %}{% endblock extra_css %}
+
+    <title>{% block title %}{% endblock title %}</title>
+  </head>
+  <body>
+
+  <nav class="navbar is-dark is-fixed-top" role="navigation" aria-label="main navigation" style="width: 100%;">
+    <div class="navbar-brand">
+      <a role="button" class="navbar-burger" aria-label="menu" aria-expanded="false" data-target="navbarBasicExample">
+        <span aria-hidden="true"></span>
+        <span aria-hidden="true"></span>
+        <span aria-hidden="true"></span>
+      </a>
+    </div>
+    <div id="navbarBasicExample" class="navbar-menu">
+      <div class="navbar-start">
+        <a class="navbar-item" href="/">ホーム</a>
+        <a class="navbar-item sidebar-toggle" role="button">記事</a>
+        {% if user.is_authenticated %}
+        <a class="navbar-item" href="/create/">新規作成</a>
+        <a class="navbar-item" href="/settings/">編集</a>
+        {% endif %}
+      </div>
+      <div class="navbar-end">
+        {% if user.is_authenticated %}
+        <a class="navbar-item" href="/accounts/login/">{{ user.username }} - Logout</a>
+        {% else %}
+        <a href="/accounts/login/" class="navbar-item">
+          Log in
+        </a>
+        <a href="/accounts/signup/" class="navbar-item">
+          Sign up
+        </a>
+        {% endif %}
+      </div>
+    </div>
+  </nav>
+  <aside id="sidebar" class="sidebar">
+    <div class="has-background-grey-dark has-text-white">
+      <div class="padding-all">
+        <div class="container">
+          <div class="columns no-margin is-mobile">
+            <div class="column is-narrow">
+              階層図
+            </div>
+            <div class="column has-text-right">
+              <button class="button sidebar-toggle delete is-dark"></button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="tree">
+        {% for html in nav_tree_htmls %}
+        {{ html | safe  }}
+        {% endfor %}
+      </div>
+    </div>
+  </aside>
+  {% block content %}{% endblock content %}
+    <!-- Custom JS -->
+    <script src="{% static 'js/menu.js' %}"></script>
+    <script src="{% static 'js/sidebar.js' %}"></script>
+    <!-- Extra JavaScript -->
+    {% block extra_js %}{% endblock extra_js %}
+  </body>
+</html>

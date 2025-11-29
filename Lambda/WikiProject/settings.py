@@ -12,10 +12,14 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 
 from pathlib import Path
 import os
+import sys
 import boto3
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+# Add lib directory to Python path for custom modules
+sys.path.insert(0, str(BASE_DIR / 'lib'))
 
 
 # Quick-start development settings - unsuitable for production
@@ -35,6 +39,7 @@ COGNITO_USER_POOL_ID = os.environ.get('COGNITO_USER_POOL_ID', 'local-pool-id')
 COGNITO_CLIENT_ID = os.environ.get('COGNITO_CLIENT_ID', 'local-client-id')
 COGNITO_CLIENT_SECRET = os.environ.get('COGNITO_CLIENT_SECRET', 'local-client-secret')
 AWS_REGION = boto3.session.Session().region_name
+DOMAIN = os.environ.get('DOMAIN', 'http://localhost:8000')
 
 # API Gatewayを直接呼び出す用
 FORCE_SCRIPT_NAME = os.environ.get('SCRIPT_NAME', '')
@@ -81,7 +86,7 @@ if USE_DSQL:
   TEMPLATES = [
     {
       'BACKEND': 'django.template.backends.django.DjangoTemplates',
-      'DIRS': [],
+      'DIRS': [BASE_DIR / 'templates'],
       'APP_DIRS': True,
       'OPTIONS': {
         'context_processors': [
@@ -95,7 +100,7 @@ else:
   TEMPLATES = [
     {
       'BACKEND': 'django.template.backends.django.DjangoTemplates',
-      'DIRS': [],
+      'DIRS': [BASE_DIR / 'templates'],
       'APP_DIRS': True,
       'OPTIONS': {
         'context_processors': [

@@ -18,18 +18,20 @@ class CustomUserManager(models.Manager):
       email = email_name + '@' + domain_part.lower()
     return email
 
-  def create_user(self, username, email, **extra_fields):
+  def create_user(self, username, email, password=None, **extra_fields):
     """Create and save a regular user with username and email (Cognito handles password)"""
     if not username:
       raise ValueError('The Username field must be set')
     if not email:
       raise ValueError('The Email field must be set')
     email = self.normalize_email(email)
+    # Remove password from extra_fields if present (not stored in local DB)
+    extra_fields.pop('password', None)
     user = self.model(username=username, email=email, **extra_fields)
     user.save(using=self._db)
     return user
 
-  def create_superuser(self, username, email, **extra_fields):
+  def create_superuser(self, username, email, password=None, **extra_fields):
     """Create and save a superuser with username and email (Cognito handles password)"""
     extra_fields.setdefault('is_staff', True)
     extra_fields.setdefault('is_superuser', True)
@@ -39,7 +41,7 @@ class CustomUserManager(models.Manager):
     if extra_fields.get('is_superuser') is not True:
       raise ValueError('Superuser must have is_superuser=True.')
 
-    return self.create_user(username, email, **extra_fields)
+    return self.create_user(username, email, password=password, **extra_fields)
 
 
 class User(models.Model):

@@ -1,0 +1,16 @@
+<div class="modal" id="delete">
+  <div class="modal-background"></div>
+  <div class="modal-card">
+    <header class="modal-card-head">
+      <p class="modal-card-title">確認</p>
+      <button class="delete" aria-label="close"></button>
+    </header>
+    <section class="modal-card-body">
+      このページを削除しますか？
+    </section>
+    <footer class="modal-card-foot">
+      <a href="{% url 'wiki:delete' id %}" class="button is-link">はい</a>
+      <button class="button is-link is-light">いいえ</button>
+    </footer>
+  </div>
+</div>

@@ -1,0 +1,70 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load boost %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/table.css' %}">
+{% endblock extra_css %}
+
+{% block title %}編集{% endblock title %}
+
+{% block content %}
+<form method="post">
+  <div class="padding-all">
+    <h2 class="title is-2 has-text-centered">
+      {{ user.username }}
+    </h2>
+    <div class="has-text-centered">
+      <button type="submit" name="action" value="end" class="button is-link">保存して終了</button>
+      <button type="submit" name="action" value="continue" class="button is-link">保存して継続</button>
+    </div>
+  </div>
+  {% csrf_token %}
+  {{ formset.management_form }}
+  <div class="is-flex is-justify-content-center">
+    <div class="custom-table-container">
+      <table class="table">
+        <thead>
+          <tr>
+            <th class="has-text-centered">タイトル</th>
+            <th class="has-text-centered">スラッグ</th>
+            <th class="has-text-centered">優先度</th>
+            <th class="has-text-centered">閲覧</th>
+            <th class="has-text-centered">編集</th>
+            <th class="has-text-centered">本文</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for form,page in formset|zip:pages %}
+          <tr>
+            <td class="has-text-centered">
+              {{ form.id }}
+              {{ form.title }}
+            </td>
+            <td class="has-text-centered">{{ form.slug }}</td>
+            <td class="has-text-centered">{{ form.priority }}</td>
+            <td class="has-text-centered">{{ form.public }}</td>
+            <td class="has-text-centered">{{ form.edit_permission }}</td>
+            <td class="has-text-centered">
+              <a href="{% url 'wiki:detail' user.username page.slug %}" class="button is-link is-small is-outlined">
+                表示
+              </a>
+              <a href="{% url 'wiki:update' user.username page.slug %}" class="button is-link is-small is-outlined">
+                編集
+              </a>
+            </td>
+
+          </tr>
+          {% endfor %}
+          {# <tr><td>hoge</td><td>hoge</td><td>hoge</td><td>hoge</td><td>hoge</td><td>hoge</td></tr> #}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</form>
+{# </div> #}
+{% endblock content %}
+
+{% block extra_js %}
+<script src="{% static 'js/edit_permission_set.js' %}"></script>
+{% endblock extra_js %}

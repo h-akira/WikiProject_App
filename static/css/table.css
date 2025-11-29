@@ -1,0 +1,24 @@
+/* ChatGPTにより生成 */
+.custom-table-container {
+  max-height: 600px;  /* 任意の高さに設定 */
+  max-width: 1000px;
+  overflow-y: auto;  /* 垂直方向にスクロール */
+  position: relative;
+  border: 1px solid #dbdbdb;  /* Bulmaのデフォルトのテーブルのボーダーに合わせる */
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;  
+}
+
+thead {
+  position: sticky;  /* これがヘッダを固定する鍵となるプロパティ */
+  top: 0;            /* 上端にヘッダを固定 */
+  z-index: 10;       /* ヘッダが他の要素の上に表示されるようにする */
+  background-color: white;  /* 背景を白くすることでスクロール中もテキストが見えなくなる */
+}
+
+thead th {
+  background-color: white;
+}

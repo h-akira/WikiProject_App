@@ -1,0 +1,89 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block extra_css %}
+{# <link rel="stylesheet"href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@9.16.2/build/styles/default.min.css"> #}
+{% endblock extra_css %}
+
+{% block title %}編集{% endblock title %}
+
+{% block content %}
+<div class="padding-side padding-top-10">
+  {% if share %}
+  <form class="" action="{% url 'wiki:share_update' share_code %}" method="post">
+    <button type="submit" name="action" value="detail" class="button is-link">保存して終了</button>
+    <button type="submit" name="action" value="update" class="button is-link">保存して継続</button>
+    <a href="{% url 'wiki:share_detail' share_code %}" class="button is-link is-light">戻る</a>
+  {% elif type == "create" or type != "update" %}
+  {# <h1 class="title is-1">新規作成</h1> #}
+  <form class="" action="{% url 'wiki:create' %}" method="post">
+    <button type="submit" name="action" value="detail" class="button is-link">保存して終了</button>
+    <button type="submit" name="action" value="update" class="button is-link">保存して継続</button>
+  {% else %}
+  {# <h1 class="title is-1">編集</h1> #}
+  <form class="" action="{% url 'wiki:update' username slug %}" method="post">
+    <button type="submit" name="action" value="detail" class="button is-link">保存して終了</button>
+    <button type="submit" name="action" value="update" class="button is-link">保存して継続</button>
+    <a href="{% url 'wiki:detail' username slug %}" class="button is-link is-light">戻る</a>
+    <a class="button js-modal-trigger is-link is-light" data-target="delete">削除</a>
+  {% endif %}
+    {% csrf_token %}
+    <p>タイトル：</p>
+    <p>{{ form.title }}</p>
+    <p>スラッグ：{{ form.slug }}</p>
+    <p>優先度　：{{ form.priority }}</p>
+    {% if author %}
+    <p>公開　　：{{ form.public }}</p>
+    <p id="edit-permission">編集許可：{{ form.edit_permission }}</p>
+    <p>共有　　：{{ form.share }}</p>
+    <p id="share-code">共有コード　：{{ form.share_code }}</p>
+    <br>
+    <p id="share-edit-permission">共有編集許可：{{ form.share_edit_permission }}</p>
+    {% else %}
+    <div hidden="hidden">
+      <p>公開　　：{{ form.public }}</p>
+      <p id="edit-permission">編集許可：{{ form.edit_permission }}</p>
+      <p>共有　　：{{ form.share }}</p>
+      <p id="share-code">共有コード　：{{ form.share_code }}</p>
+      <br>
+      <p id="share-edit-permission">共有編集許可：{{ form.share_edit_permission }}</p>
+    </div>
+    {% endif %}
+    <p>
+      {{ form.media }}
+      {{ form.text }}
+      {# {{ form.media }} #}
+    </p>
+    {# <hr> #}
+    {# <button type="submit" name="action" value="detail" class="button is-link"> #}
+    {#   保存して終了 #}
+    {# </button> #}
+    {# <button type="submit" name="action" value="update" class="button is-link"> #}
+    {#   保存して継続 #}
+    {# </button> #}
+    {# {%if type == "update" %} #}
+    {# <a href="{% url 'Wiki:detail' username slug %}" class="button is-link is-light"> #}
+    {#   戻る #}
+    {# </a> #}
+    {# <a class="button js-modal-trigger is-link is-light" data-target="delete"> #}
+    {#   削除 #}
+    {# </a> #}
+    {# {% endif %} #}
+  </form>
+  {%if type == "update" %}
+  {% include 'wiki/delete_modal.html' %}
+  {% endif %}
+</div>
+{% endblock content %}
+
+{% block extra_js %}
+{# <script src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@9.16.2/build/highlight.min.js"></script> #}
+{# <script>hljs.initHighlightingOnLoad();</script> #}
+{% if author %}
+<script src="{% static 'js/edit_permission.js' %}"></script>
+<script src="{% static 'js/share_edit_permission.js' %}"></script>
+{% endif %}
+{%if type == "update" %}
+<script src="{% static 'js/modal.js' %}"></script>
+{% endif %}
+{% endblock extra_js %}

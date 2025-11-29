@@ -15,7 +15,7 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 import os
-from django.urls import path
+from django.urls import path, include
 from django.http import JsonResponse
 
 # Check if DSQL mode is enabled
@@ -29,6 +29,8 @@ def health_check(request):
 
 urlpatterns = [
   path('health/', health_check, name='health_check'),
+  path('accounts/', include('accounts.urls')),
+  path('', include('wiki.urls')),  # Root URLs go to wiki app
 ]
 
 # Only include admin in non-DSQL mode (local development)

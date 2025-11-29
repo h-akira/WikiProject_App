@@ -1,0 +1,53 @@
+{% extends 'base.html' %}
+{% block extra_css %}
+{% endblock extra_css %}
+
+{% block title %}ホーム{% endblock title %}
+
+{% block content %}
+<div class="padding-top-10 padding-bottom-10">
+  <h1 class="title is-1 has-text-centered">ホーム</h1>
+</div>
+<div class="padding-side">
+  <div class="columns">
+    <div class="column padding-side">
+      <div class="card card-bordered">
+        <div class="card-content">
+          <h3 class="title is-3 has-text-centered">階層図</h3>
+          <div class="tree">
+            {% for html in tree_htmls %}
+            {{ html | safe  }}
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="column">
+      <div class="card card-bordered">
+        <div class="card-content">
+          <h3 class="title is-3 has-text-centered">最近の更新</h3>
+          {% for page in pages|slice:":10"  %}
+          <h5 class="title is-5">
+            {{ page.title }}
+          </h5>
+          <p>
+            <a href="{% url 'wiki:detail' page.user.username page.slug %}">
+              {{ page.user.username }}/{{ page.slug }}
+            </a>
+          </p>
+          <p>
+            (最終更新:{{ page.last_updated }})
+          </p>
+          {% if not forloop.last %}
+            <hr>
+          {% endif %}
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock content %}
+
+{% block extra_js %}
+{% endblock extra_js %}
