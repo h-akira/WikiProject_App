@@ -199,7 +199,7 @@ class CognitoAuthMiddleware:
     """
     refresh_token = request.COOKIES.get('refresh_token')
     if not refresh_token:
-      settings.logger.info("No refresh_token found in cookies")
+      logger.info("No refresh_token found in cookies")
       return None, None
 
     try:
@@ -212,13 +212,13 @@ class CognitoAuthMiddleware:
         )
         username = unverified_payload.get('cognito:username')
       else:
-        settings.logger.error("No id_token to extract username from")
+        logger.error("No id_token to extract username from")
         return None, None
 
       # Calculate SECRET_HASH
       client_secret = getattr(settings, 'COGNITO_CLIENT_SECRET', None)
       if not client_secret:
-        settings.logger.error("COGNITO_CLIENT_SECRET not configured")
+        logger.error("COGNITO_CLIENT_SECRET not configured")
         return None, None
 
       secret_hash = calculate_secret_hash(username, self.client_id, client_secret)
@@ -235,11 +235,11 @@ class CognitoAuthMiddleware:
       )
 
       new_id_token = response['AuthenticationResult']['IdToken']
-      settings.logger.info(f"Token refreshed successfully for user: {username}")
+      logger.info(f"Token refreshed successfully for user: {username}")
       return new_id_token, username
 
     except Exception as e:
-      settings.logger.error(f"Error refreshing token: {e}")
+      logger.error(f"Error refreshing token: {e}")
       return None, None
 
   def get_or_create_user(self, cognito_claims):
@@ -257,7 +257,7 @@ class CognitoAuthMiddleware:
       cognito_username = cognito_claims.get('cognito:username')
 
       if not cognito_username or not email:
-        settings.logger.error("No username or email in token claims")
+        logger.error("No username or email in token claims")
         return None
 
       # Get or create user by username (primary identifier)
@@ -272,12 +272,12 @@ class CognitoAuthMiddleware:
       )
 
       if created:
-        settings.logger.info(f"Created new user: {email}")
+        logger.info(f"Created new user: {email}")
 
       return user
 
     except Exception as e:
-      settings.logger.error(f"Error getting/creating user: {e}")
+      logger.error(f"Error getting/creating user: {e}")
       return None
 
   def __call__(self, request):
@@ -301,7 +301,7 @@ class CognitoAuthMiddleware:
 
       # If token verification failed, try to refresh
       if not claims and request.COOKIES.get('refresh_token'):
-        settings.logger.info("ID token invalid or expired, attempting to refresh")
+        logger.info("ID token invalid or expired, attempting to refresh")
         new_id_token, username = self.refresh_tokens(request)
 
         if new_id_token:
@@ -334,6 +334,6 @@ class CognitoAuthMiddleware:
         httponly=True,
         samesite='Lax'  # Allow cross-site navigation
       )
-      settings.logger.info("Updated id_token cookie after refresh")
+      logger.info("Updated id_token cookie after refresh")
 
     return response
