@@ -123,6 +123,25 @@ class CognitoAuthMiddleware:
     Returns:
       dict: Decoded token claims if valid, None otherwise
     """
+    # Mock mode: skip JWT verification
+    if settings.USE_MOCK:
+      try:
+        # Mock tokens are in format: mock-id-{base64_encoded_json}
+        if token.startswith('mock-id-'):
+          import json
+          payload_b64 = token.replace('mock-id-', '')
+          payload_json = base64.b64decode(payload_b64).decode('utf-8')
+          claims = json.loads(payload_json)
+          print(f"Mock token verified for user: {claims.get('cognito:username')}")
+          return claims
+        else:
+          print(f"Invalid mock token format: {token[:20]}...")
+          return None
+      except Exception as e:
+        print(f"Error decoding mock token: {e}")
+        return None
+
+    # Real Cognito verification
     if not self.jwk_client or not self.issuer or not self.client_id:
       print("Cognito settings not configured")
       return None
