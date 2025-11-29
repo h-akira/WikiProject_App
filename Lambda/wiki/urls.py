@@ -13,5 +13,5 @@ urlpatterns = [
   path('settings/', page_settings, name='page_settings'),
   re_path(r'^detail/(?P<username>[^/]+)/(?P<slug>.+)/$', detail, name='detail'),
   re_path(r'^update/(?P<username>[^/]+)/(?P<slug>.+)/$', update, name='update'),
-  path('delete/<int:id>/', delete, name='delete'),
+  path('delete/<uuid:id>/', delete, name='delete'),
 ]
