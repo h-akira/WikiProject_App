@@ -273,7 +273,7 @@ def signup_page(request):
         })
       else:
         # Need confirmation, redirect to confirm page
-        return redirect(f"{reverse('confirm_page')}?username={username}")
+        return redirect(f"{reverse('accounts:confirm')}?username={username}")
 
     except Exception as e:
       error_msg = str(e)
