@@ -71,17 +71,44 @@
     .links a:hover {
       text-decoration: underline;
     }
+    .error {
+      background: #fee;
+      color: #c33;
+      padding: 12px;
+      border-radius: 5px;
+      margin-bottom: 20px;
+      border: 1px solid #fcc;
+    }
+    .success {
+      background: #efe;
+      color: #3c3;
+      padding: 12px;
+      border-radius: 5px;
+      margin-bottom: 20px;
+      border: 1px solid #cfc;
+    }
   </style>
 </head>
 <body>
   <div class="confirm-box">
     <h1>Confirm Email</h1>
+    {% if error %}
+    <div class="error">{{ error }}</div>
+    {% endif %}
+    {% if success %}
+    <div class="success">{{ success }}</div>
+    <script>
+      setTimeout(function() {
+        window.location.href = '/accounts/login/';
+      }, 2000);
+    </script>
+    {% else %}
     <p>Please enter the confirmation code sent to your email address.</p>
     <form method="post">
       {% csrf_token %}
       <div class="form-group">
         <label for="username">Username:</label>
-        <input type="text" id="username" name="username" required>
+        <input type="text" id="username" name="username" value="{{ username }}" required>
       </div>
       <div class="form-group">
         <label for="code">Confirmation Code:</label>
@@ -93,6 +120,7 @@
       <a href="/accounts/login/">Login</a>
       <a href="/">Home</a>
     </div>
+    {% endif %}
   </div>
 </body>
 </html>
