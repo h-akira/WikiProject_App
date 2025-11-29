@@ -6,6 +6,7 @@ env:
     USE_MOCK: 'false'
   parameter-store:
     DEBUG: /Django/env/DEBUG
+    S3_BUCKET: /S3/contents/bucket_name
 
 phases:
   install:
@@ -27,3 +28,4 @@ phases:
       - echo "Building and deploying Wiki Project App..."
       - sam build
       - sam deploy --no-confirm-changeset --no-fail-on-empty-changeset --parameter-overrides ParameterKey=DEBUG,ParameterValue=$DEBUG ParameterKey=UseDSQL,ParameterValue=$USE_DSQL ParameterKey=UseMock,ParameterValue=$USE_MOCK
+      - aws s3 sync Lambda/static_local/ s3://$S3_BUCKET/CloudFront/ --delete
