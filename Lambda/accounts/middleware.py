@@ -12,6 +12,10 @@ import boto3
 import hmac
 import hashlib
 import base64
+import logging
+
+# Get logger for this module
+logger = logging.getLogger('wiki')
 
 
 class AnonymousUser:
@@ -98,16 +102,16 @@ class CognitoAuthMiddleware:
     # Check Authorization header
     auth_header = request.headers.get('Authorization', '')
     if auth_header.startswith('Bearer '):
-      settings.logger.info("Found token in Authorization header")
+      logger.info("Found token in Authorization header")
       return auth_header[7:]  # Remove 'Bearer ' prefix
 
     # Check id_token cookie
     id_token = request.COOKIES.get('id_token')
     if id_token:
-      settings.logger.info("Found token in cookie")
+      logger.info("Found token in cookie")
       return id_token
 
-    settings.logger.info(f"No token found. Cookies: {list(request.COOKIES.keys())}")
+    logger.info(f"No token found. Cookies: {list(request.COOKIES.keys())}")
     return None
 
   def verify_token(self, token):
@@ -132,18 +136,18 @@ class CognitoAuthMiddleware:
           payload_b64 = token.replace('mock-id-', '')
           payload_json = base64.b64decode(payload_b64).decode('utf-8')
           claims = json.loads(payload_json)
-          settings.logger.info(f"Mock token verified for user: {claims.get('cognito:username')}")
+          logger.info(f"Mock token verified for user: {claims.get('cognito:username')}")
           return claims
         else:
-          settings.logger.info(f"Invalid mock token format: {token[:20]}...")
+          logger.info(f"Invalid mock token format: {token[:20]}...")
           return None
       except Exception as e:
-        settings.logger.error(f"Error decoding mock token: {e}")
+        logger.error(f"Error decoding mock token: {e}")
         return None
 
     # Real Cognito verification
     if not self.jwk_client or not self.issuer or not self.client_id:
-      settings.logger.error("Cognito settings not configured")
+      logger.error("Cognito settings not configured")
       return None
 
     try:
@@ -155,7 +159,7 @@ class CognitoAuthMiddleware:
       )
 
       if unverified_payload.get('iss') != self.issuer:
-        settings.logger.error(f"Invalid issuer: {unverified_payload.get('iss')}")
+        logger.error(f"Invalid issuer: {unverified_payload.get('iss')}")
         return None
 
       # Get signing key from JWKS
@@ -170,17 +174,17 @@ class CognitoAuthMiddleware:
         issuer=self.issuer
       )
 
-      settings.logger.info(f"Real Cognito token verified for user: {decoded.get('cognito:username')}")
+      logger.info(f"Real Cognito token verified for user: {decoded.get('cognito:username')}")
       return decoded
 
     except jwt.ExpiredSignatureError:
-      settings.logger.info("Token has expired")
+      logger.info("Token has expired")
       return None
     except jwt.InvalidTokenError as e:
-      settings.logger.error(f"Invalid token: {e}")
+      logger.error(f"Invalid token: {e}")
       return None
     except Exception as e:
-      settings.logger.error(f"Error verifying token: {e}")
+      logger.error(f"Error verifying token: {e}")
       return None
 
   def refresh_tokens(self, request):

@@ -14,7 +14,6 @@ from pathlib import Path
 import os
 import sys
 import boto3
-import logging
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -46,9 +45,7 @@ DOMAIN = os.environ.get('DOMAIN', 'http://localhost:8000')
 # API Gatewayを直接呼び出す用
 FORCE_SCRIPT_NAME = os.environ.get('SCRIPT_NAME', '')
 
-# Configure logger
-logger = logging.getLogger('wiki')
-logger.setLevel(logging.INFO)
+# Logger is configured in LOGGING below
 
 # Application definition
 
@@ -193,6 +190,11 @@ LOGGING = {
       'propagate': False,
     },
     'django.server': {
+      'handlers': ['console'],
+      'level': 'INFO',
+      'propagate': False,
+    },
+    'wiki': {
       'handlers': ['console'],
       'level': 'INFO',
       'propagate': False,
