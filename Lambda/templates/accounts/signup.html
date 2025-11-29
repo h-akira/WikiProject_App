@@ -68,11 +68,33 @@
     .links a:hover {
       text-decoration: underline;
     }
+    .error {
+      background: #fee;
+      color: #c33;
+      padding: 12px;
+      border-radius: 5px;
+      margin-bottom: 20px;
+      border: 1px solid #fcc;
+    }
+    .success {
+      background: #efe;
+      color: #3c3;
+      padding: 12px;
+      border-radius: 5px;
+      margin-bottom: 20px;
+      border: 1px solid #cfc;
+    }
   </style>
 </head>
 <body>
   <div class="signup-box">
     <h1>Sign Up</h1>
+    {% if error %}
+    <div class="error">{{ error }}</div>
+    {% endif %}
+    {% if success %}
+    <div class="success">{{ success }}</div>
+    {% endif %}
     <form method="post">
       {% csrf_token %}
       <div class="form-group">

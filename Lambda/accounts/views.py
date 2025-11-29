@@ -151,11 +151,11 @@ def login_page(request):
         )
         auth_result = response['AuthenticationResult']
 
-      # Set cookies and redirect to protected page
+      # Set cookies and redirect to home page
       id_token = auth_result['IdToken']
       refresh_token = auth_result['RefreshToken']
 
-      response_redirect = redirect('protected_page')
+      response_redirect = redirect('wiki:index')
 
       # Set id_token cookie (expires in 1 hour)
       response_redirect.set_cookie(
