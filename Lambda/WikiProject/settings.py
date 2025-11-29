@@ -34,6 +34,7 @@ DEBUG = os.environ.get('DEBUG', 'true').lower() == 'true'
 ALLOWED_HOSTS = ["*"]
 
 # カスタム変数
+USE_MOCK = os.environ.get('USE_MOCK', 'false').lower() == 'true'
 USE_DSQL = os.environ.get('USE_DSQL', 'false').lower() == 'true'
 COGNITO_USER_POOL_ID = os.environ.get('COGNITO_USER_POOL_ID', 'local-pool-id')
 COGNITO_CLIENT_ID = os.environ.get('COGNITO_CLIENT_ID', 'local-client-id')

@@ -23,6 +23,10 @@ def main():
     from mock.ssm import set_data as set_ssm_data
     set_ssm_data()
 
+    # Setup mock Cognito
+    from mock.cognito import setup_mock_cognito
+    setup_mock_cognito()
+
   # Get SSM parameters and set as environment variables
   ssm_client = boto3.client('ssm')
 

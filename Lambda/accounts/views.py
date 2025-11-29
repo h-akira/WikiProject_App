@@ -12,6 +12,10 @@ import base64
 from .models import User
 from .decorators import cognito_login_required, cognito_staff_required
 
+# Check if we're in mock mode
+if settings.USE_MOCK:
+  from mock.cognito import mock_sign_up, mock_initiate_auth, mock_confirm_sign_up
+
 
 def calculate_secret_hash(username, client_id, client_secret):
   """
@@ -113,31 +117,41 @@ def login_page(request):
         'error': 'Username and password are required'
       })
 
-    # Authenticate with Cognito
-    client = boto3.client('cognito-idp', region_name=settings.AWS_REGION)
-
     try:
-      auth_parameters = {
-        'USERNAME': username,
-        'PASSWORD': password
-      }
-
-      if hasattr(settings, 'COGNITO_CLIENT_SECRET') and settings.COGNITO_CLIENT_SECRET:
-        auth_parameters['SECRET_HASH'] = calculate_secret_hash(
-          username,
-          settings.COGNITO_CLIENT_ID,
-          settings.COGNITO_CLIENT_SECRET
+      # Use mock or real Cognito based on environment
+      if settings.USE_MOCK:
+        # Mock authentication
+        response = mock_initiate_auth(
+          username=username,
+          password=password,
+          client_id=settings.COGNITO_CLIENT_ID,
+          client_secret=settings.COGNITO_CLIENT_SECRET if hasattr(settings, 'COGNITO_CLIENT_SECRET') else ''
         )
+        auth_result = response['AuthenticationResult']
+      else:
+        # Real Cognito authentication
+        client = boto3.client('cognito-idp', region_name=settings.AWS_REGION)
+        auth_parameters = {
+          'USERNAME': username,
+          'PASSWORD': password
+        }
 
-      response = client.admin_initiate_auth(
-        UserPoolId=settings.COGNITO_USER_POOL_ID,
-        ClientId=settings.COGNITO_CLIENT_ID,
-        AuthFlow='ADMIN_USER_PASSWORD_AUTH',
-        AuthParameters=auth_parameters
-      )
+        if hasattr(settings, 'COGNITO_CLIENT_SECRET') and settings.COGNITO_CLIENT_SECRET:
+          auth_parameters['SECRET_HASH'] = calculate_secret_hash(
+            username,
+            settings.COGNITO_CLIENT_ID,
+            settings.COGNITO_CLIENT_SECRET
+          )
+
+        response = client.admin_initiate_auth(
+          UserPoolId=settings.COGNITO_USER_POOL_ID,
+          ClientId=settings.COGNITO_CLIENT_ID,
+          AuthFlow='ADMIN_USER_PASSWORD_AUTH',
+          AuthParameters=auth_parameters
+        )
+        auth_result = response['AuthenticationResult']
 
       # Set cookies and redirect to protected page
-      auth_result = response['AuthenticationResult']
       id_token = auth_result['IdToken']
       refresh_token = auth_result['RefreshToken']
 
@@ -167,20 +181,27 @@ def login_page(request):
 
       return response_redirect
 
-    except client.exceptions.UserNotConfirmedException:
-      return render(request, 'accounts/login.html', {
-        'error': 'User is not confirmed. Please check your email for confirmation code.',
-        'redirect_confirm': True,
-        'username': username
-      })
-    except client.exceptions.NotAuthorizedException:
-      return render(request, 'accounts/login.html', {
-        'error': 'Incorrect username or password'
-      })
     except Exception as e:
-      return render(request, 'accounts/login.html', {
-        'error': f'Login failed: {str(e)}'
-      })
+      error_msg = str(e)
+      # Handle different error types
+      if 'UserNotConfirmedException' in error_msg:
+        return render(request, 'accounts/login.html', {
+          'error': 'User is not confirmed. Please check your email for confirmation code.',
+          'redirect_confirm': True,
+          'username': username
+        })
+      elif 'NotAuthorizedException' in error_msg or 'Incorrect username or password' in error_msg:
+        return render(request, 'accounts/login.html', {
+          'error': 'Incorrect username or password'
+        })
+      elif 'UserNotFoundException' in error_msg:
+        return render(request, 'accounts/login.html', {
+          'error': 'User not found'
+        })
+      else:
+        return render(request, 'accounts/login.html', {
+          'error': f'Login failed: {error_msg}'
+        })
 
   # GET request
   return render(request, 'accounts/login.html')
@@ -205,29 +226,41 @@ def signup_page(request):
         'error': 'Username, email, and password are required'
       })
 
-    # Sign up with Cognito
-    client = boto3.client('cognito-idp', region_name=settings.AWS_REGION)
-
     try:
-      signup_kwargs = {
-        'ClientId': settings.COGNITO_CLIENT_ID,
-        'Username': username,
-        'Password': password,
-        'UserAttributes': [
-          {'Name': 'email', 'Value': email},
-          {'Name': 'given_name', 'Value': given_name},
-          {'Name': 'family_name', 'Value': family_name}
-        ]
-      }
-
-      if hasattr(settings, 'COGNITO_CLIENT_SECRET') and settings.COGNITO_CLIENT_SECRET:
-        signup_kwargs['SecretHash'] = calculate_secret_hash(
-          username,
-          settings.COGNITO_CLIENT_ID,
-          settings.COGNITO_CLIENT_SECRET
+      # Use mock or real Cognito based on environment
+      if settings.USE_MOCK:
+        # Mock signup
+        response = mock_sign_up(
+          username=username,
+          password=password,
+          email=email,
+          given_name=given_name,
+          family_name=family_name,
+          client_id=settings.COGNITO_CLIENT_ID,
+          client_secret=settings.COGNITO_CLIENT_SECRET if hasattr(settings, 'COGNITO_CLIENT_SECRET') else ''
         )
+      else:
+        # Real Cognito signup
+        client = boto3.client('cognito-idp', region_name=settings.AWS_REGION)
+        signup_kwargs = {
+          'ClientId': settings.COGNITO_CLIENT_ID,
+          'Username': username,
+          'Password': password,
+          'UserAttributes': [
+            {'Name': 'email', 'Value': email},
+            {'Name': 'given_name', 'Value': given_name},
+            {'Name': 'family_name', 'Value': family_name}
+          ]
+        }
 
-      response = client.sign_up(**signup_kwargs)
+        if hasattr(settings, 'COGNITO_CLIENT_SECRET') and settings.COGNITO_CLIENT_SECRET:
+          signup_kwargs['SecretHash'] = calculate_secret_hash(
+            username,
+            settings.COGNITO_CLIENT_ID,
+            settings.COGNITO_CLIENT_SECRET
+          )
+
+        response = client.sign_up(**signup_kwargs)
 
       # Check if user is confirmed
       user_confirmed = response.get('UserConfirmed', False)
@@ -242,18 +275,21 @@ def signup_page(request):
         # Need confirmation, redirect to confirm page
         return redirect(f"{reverse('confirm_page')}?username={username}")
 
-    except client.exceptions.UsernameExistsException:
-      return render(request, 'accounts/signup.html', {
-        'error': 'Username already exists'
-      })
-    except client.exceptions.InvalidPasswordException as e:
-      return render(request, 'accounts/signup.html', {
-        'error': f'Invalid password: {str(e)}'
-      })
     except Exception as e:
-      return render(request, 'accounts/signup.html', {
-        'error': f'Sign up failed: {str(e)}'
-      })
+      error_msg = str(e)
+      # Handle different error types
+      if 'UsernameExistsException' in error_msg:
+        return render(request, 'accounts/signup.html', {
+          'error': 'Username already exists'
+        })
+      elif 'InvalidPasswordException' in error_msg:
+        return render(request, 'accounts/signup.html', {
+          'error': f'Invalid password: {error_msg}'
+        })
+      else:
+        return render(request, 'accounts/signup.html', {
+          'error': f'Sign up failed: {error_msg}'
+        })
 
   # GET request
   return render(request, 'accounts/signup.html')
@@ -276,24 +312,33 @@ def confirm_page(request):
         'username': username
       })
 
-    # Confirm with Cognito
-    client = boto3.client('cognito-idp', region_name=settings.AWS_REGION)
-
     try:
-      confirm_kwargs = {
-        'ClientId': settings.COGNITO_CLIENT_ID,
-        'Username': username,
-        'ConfirmationCode': code
-      }
-
-      if hasattr(settings, 'COGNITO_CLIENT_SECRET') and settings.COGNITO_CLIENT_SECRET:
-        confirm_kwargs['SecretHash'] = calculate_secret_hash(
-          username,
-          settings.COGNITO_CLIENT_ID,
-          settings.COGNITO_CLIENT_SECRET
+      # Use mock or real Cognito based on environment
+      if settings.USE_MOCK:
+        # Mock confirmation
+        mock_confirm_sign_up(
+          username=username,
+          confirmation_code=code,
+          client_id=settings.COGNITO_CLIENT_ID,
+          client_secret=settings.COGNITO_CLIENT_SECRET if hasattr(settings, 'COGNITO_CLIENT_SECRET') else ''
         )
+      else:
+        # Real Cognito confirmation
+        client = boto3.client('cognito-idp', region_name=settings.AWS_REGION)
+        confirm_kwargs = {
+          'ClientId': settings.COGNITO_CLIENT_ID,
+          'Username': username,
+          'ConfirmationCode': code
+        }
 
-      client.confirm_sign_up(**confirm_kwargs)
+        if hasattr(settings, 'COGNITO_CLIENT_SECRET') and settings.COGNITO_CLIENT_SECRET:
+          confirm_kwargs['SecretHash'] = calculate_secret_hash(
+            username,
+            settings.COGNITO_CLIENT_ID,
+            settings.COGNITO_CLIENT_SECRET
+          )
+
+        client.confirm_sign_up(**confirm_kwargs)
 
       # Success, redirect to login
       return render(request, 'accounts/confirm.html', {
@@ -301,21 +346,24 @@ def confirm_page(request):
         'redirect_login': True
       })
 
-    except client.exceptions.CodeMismatchException:
-      return render(request, 'accounts/confirm.html', {
-        'error': 'Invalid confirmation code',
-        'username': username
-      })
-    except client.exceptions.ExpiredCodeException:
-      return render(request, 'accounts/confirm.html', {
-        'error': 'Confirmation code has expired. Please request a new one.',
-        'username': username
-      })
     except Exception as e:
-      return render(request, 'accounts/confirm.html', {
-        'error': f'Confirmation failed: {str(e)}',
-        'username': username
-      })
+      error_msg = str(e)
+      # Handle different error types
+      if 'CodeMismatchException' in error_msg:
+        return render(request, 'accounts/confirm.html', {
+          'error': 'Invalid confirmation code',
+          'username': username
+        })
+      elif 'ExpiredCodeException' in error_msg:
+        return render(request, 'accounts/confirm.html', {
+          'error': 'Confirmation code has expired. Please request a new one.',
+          'username': username
+        })
+      else:
+        return render(request, 'accounts/confirm.html', {
+          'error': f'Confirmation failed: {error_msg}',
+          'username': username
+        })
 
   # GET request
   username = request.GET.get('username', '')
