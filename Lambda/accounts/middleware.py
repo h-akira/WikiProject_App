@@ -170,6 +170,7 @@ class CognitoAuthMiddleware:
         issuer=self.issuer
       )
 
+      print(f"Real Cognito token verified for user: {decoded.get('cognito:username')}")
       return decoded
 
     except jwt.ExpiredSignatureError:
