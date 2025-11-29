@@ -317,6 +317,12 @@ class CognitoAuthMiddleware:
         user = self.get_or_create_user(claims)
         if user:
           request.user = user
+          logger.info(f"Set request.user to {user.username}, is_authenticated={user.is_authenticated}")
+        else:
+          logger.error("Failed to get or create user from claims")
+
+    # Log final user state before calling view
+    logger.info(f"Final request.user: {request.user}, is_authenticated={request.user.is_authenticated if hasattr(request.user, 'is_authenticated') else 'N/A'}")
 
     response = self.get_response(request)
 
