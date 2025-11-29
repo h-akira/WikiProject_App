@@ -20,7 +20,7 @@ phases:
     commands:
       - echo "Running database migrations..."
       - cd Lambda
-      - python manage.py migrate --noinput
+      - python manage.py migrate --fake-initial --noinput
       - cd ..
   build:
     commands:
