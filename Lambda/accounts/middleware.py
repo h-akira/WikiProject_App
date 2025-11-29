@@ -98,16 +98,16 @@ class CognitoAuthMiddleware:
     # Check Authorization header
     auth_header = request.headers.get('Authorization', '')
     if auth_header.startswith('Bearer '):
-      print(f"Found token in Authorization header")
+      settings.logger.info("Found token in Authorization header")
       return auth_header[7:]  # Remove 'Bearer ' prefix
 
     # Check id_token cookie
     id_token = request.COOKIES.get('id_token')
     if id_token:
-      print(f"Found token in cookie")
+      settings.logger.info("Found token in cookie")
       return id_token
 
-    print(f"No token found. Cookies: {list(request.COOKIES.keys())}")
+    settings.logger.info(f"No token found. Cookies: {list(request.COOKIES.keys())}")
     return None
 
   def verify_token(self, token):
@@ -132,18 +132,18 @@ class CognitoAuthMiddleware:
           payload_b64 = token.replace('mock-id-', '')
           payload_json = base64.b64decode(payload_b64).decode('utf-8')
           claims = json.loads(payload_json)
-          print(f"Mock token verified for user: {claims.get('cognito:username')}")
+          settings.logger.info(f"Mock token verified for user: {claims.get('cognito:username')}")
           return claims
         else:
-          print(f"Invalid mock token format: {token[:20]}...")
+          settings.logger.info(f"Invalid mock token format: {token[:20]}...")
           return None
       except Exception as e:
-        print(f"Error decoding mock token: {e}")
+        settings.logger.error(f"Error decoding mock token: {e}")
         return None
 
     # Real Cognito verification
     if not self.jwk_client or not self.issuer or not self.client_id:
-      print("Cognito settings not configured")
+      settings.logger.error("Cognito settings not configured")
       return None
 
     try:
@@ -155,7 +155,7 @@ class CognitoAuthMiddleware:
       )
 
       if unverified_payload.get('iss') != self.issuer:
-        print(f"Invalid issuer: {unverified_payload.get('iss')}")
+        settings.logger.error(f"Invalid issuer: {unverified_payload.get('iss')}")
         return None
 
       # Get signing key from JWKS
@@ -170,17 +170,17 @@ class CognitoAuthMiddleware:
         issuer=self.issuer
       )
 
-      print(f"Real Cognito token verified for user: {decoded.get('cognito:username')}")
+      settings.logger.info(f"Real Cognito token verified for user: {decoded.get('cognito:username')}")
       return decoded
 
     except jwt.ExpiredSignatureError:
-      print("Token has expired")
+      settings.logger.info("Token has expired")
       return None
     except jwt.InvalidTokenError as e:
-      print(f"Invalid token: {e}")
+      settings.logger.error(f"Invalid token: {e}")
       return None
     except Exception as e:
-      print(f"Error verifying token: {e}")
+      settings.logger.error(f"Error verifying token: {e}")
       return None
 
   def refresh_tokens(self, request):
@@ -195,7 +195,7 @@ class CognitoAuthMiddleware:
     """
     refresh_token = request.COOKIES.get('refresh_token')
     if not refresh_token:
-      print("No refresh_token found in cookies")
+      settings.logger.info("No refresh_token found in cookies")
       return None, None
 
     try:
@@ -208,13 +208,13 @@ class CognitoAuthMiddleware:
         )
         username = unverified_payload.get('cognito:username')
       else:
-        print("No id_token to extract username from")
+        settings.logger.error("No id_token to extract username from")
         return None, None
 
       # Calculate SECRET_HASH
       client_secret = getattr(settings, 'COGNITO_CLIENT_SECRET', None)
       if not client_secret:
-        print("COGNITO_CLIENT_SECRET not configured")
+        settings.logger.error("COGNITO_CLIENT_SECRET not configured")
         return None, None
 
       secret_hash = calculate_secret_hash(username, self.client_id, client_secret)
@@ -231,11 +231,11 @@ class CognitoAuthMiddleware:
       )
 
       new_id_token = response['AuthenticationResult']['IdToken']
-      print(f"Token refreshed successfully for user: {username}")
+      settings.logger.info(f"Token refreshed successfully for user: {username}")
       return new_id_token, username
 
     except Exception as e:
-      print(f"Error refreshing token: {e}")
+      settings.logger.error(f"Error refreshing token: {e}")
       return None, None
 
   def get_or_create_user(self, cognito_claims):
@@ -253,7 +253,7 @@ class CognitoAuthMiddleware:
       cognito_username = cognito_claims.get('cognito:username')
 
       if not cognito_username or not email:
-        print("No username or email in token claims")
+        settings.logger.error("No username or email in token claims")
         return None
 
       # Get or create user by username (primary identifier)
@@ -268,12 +268,12 @@ class CognitoAuthMiddleware:
       )
 
       if created:
-        print(f"Created new user: {email}")
+        settings.logger.info(f"Created new user: {email}")
 
       return user
 
     except Exception as e:
-      print(f"Error getting/creating user: {e}")
+      settings.logger.error(f"Error getting/creating user: {e}")
       return None
 
   def __call__(self, request):
@@ -297,7 +297,7 @@ class CognitoAuthMiddleware:
 
       # If token verification failed, try to refresh
       if not claims and request.COOKIES.get('refresh_token'):
-        print("ID token invalid or expired, attempting to refresh")
+        settings.logger.info("ID token invalid or expired, attempting to refresh")
         new_id_token, username = self.refresh_tokens(request)
 
         if new_id_token:
@@ -330,6 +330,6 @@ class CognitoAuthMiddleware:
         httponly=True,
         samesite='Lax'  # Allow cross-site navigation
       )
-      print(f"Updated id_token cookie after refresh")
+      settings.logger.info("Updated id_token cookie after refresh")
 
     return response
