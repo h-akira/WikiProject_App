@@ -101,6 +101,20 @@ def protected_page(request):
   })
 
 
+@require_http_methods(["GET"])
+def logout_page(request):
+  """
+  Logout page - clears authentication cookies and redirects to home
+  """
+  response = redirect('/')
+
+  # Clear authentication cookies
+  response.delete_cookie('id_token', path='/')
+  response.delete_cookie('refresh_token', path='/')
+
+  return response
+
+
 @require_http_methods(["GET", "POST"])
 def login_page(request):
   """
