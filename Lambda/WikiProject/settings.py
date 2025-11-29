@@ -95,6 +95,7 @@ if USE_DSQL:
         'context_processors': [
           'django.template.context_processors.debug',
           'django.template.context_processors.request',
+          'accounts.context_processors.user',  # Custom user context processor
         ],
       },
     },
