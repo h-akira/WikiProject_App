@@ -317,14 +317,17 @@ class CognitoAuthMiddleware:
 
     # Update id_token cookie if token was refreshed
     if new_id_token:
+      # Determine if request is secure (HTTPS)
+      is_secure = request.is_secure() or request.META.get('HTTP_X_FORWARDED_PROTO') == 'https'
+
       response.set_cookie(
         'id_token',
         new_id_token,
         max_age=3600,
         path='/',
-        secure=True,
+        secure=is_secure,  # Use secure cookies for HTTPS
         httponly=True,
-        samesite='Strict'
+        samesite='Lax'  # Allow cross-site navigation
       )
       print(f"Updated id_token cookie after refresh")
 

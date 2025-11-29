@@ -157,15 +157,18 @@ def login_page(request):
 
       response_redirect = redirect('wiki:index')
 
+      # Determine if request is secure (HTTPS)
+      is_secure = request.is_secure() or request.META.get('HTTP_X_FORWARDED_PROTO') == 'https'
+
       # Set id_token cookie (expires in 1 hour)
       response_redirect.set_cookie(
         'id_token',
         id_token,
         max_age=3600,
         path='/',
-        secure=True,
+        secure=is_secure,  # Use secure cookies for HTTPS
         httponly=True,
-        samesite='Strict'
+        samesite='Lax'  # Allow cross-site navigation
       )
 
       # Set refresh_token cookie (expires in 30 days)
@@ -174,9 +177,9 @@ def login_page(request):
         refresh_token,
         max_age=30*24*3600,  # 30 days
         path='/',
-        secure=True,
+        secure=is_secure,  # Use secure cookies for HTTPS
         httponly=True,
-        samesite='Strict'
+        samesite='Lax'  # Allow cross-site navigation
       )
 
       return response_redirect
