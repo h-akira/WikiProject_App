@@ -51,6 +51,7 @@ FORCE_SCRIPT_NAME = os.environ.get('SCRIPT_NAME', '')
 
 if USE_DSQL:
   INSTALLED_APPS = [
+    'mdeditor',  # Markdown editor
     'accounts.apps.AccountsConfig',  # Custom app
     'wiki.apps.WikiConfig'  # Custom app
   ]
@@ -68,6 +69,7 @@ else:
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'mdeditor',  # Markdown editor
     'accounts.apps.AccountsConfig',  # Custom app
     'wiki.apps.WikiConfig'  # Custom app
   ]

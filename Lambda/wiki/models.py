@@ -2,6 +2,7 @@ from django.db import models
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.core.validators import RegexValidator
+from mdeditor.fields import MDTextField
 
 
 class PageTable(models.Model):
@@ -45,8 +46,8 @@ class PageTable(models.Model):
     unique=True
   )
 
-  # Content (using standard TextField instead of MDTextField)
-  text = models.TextField(null=True, blank=True)
+  # Content (using MDTextField for markdown editing)
+  text = MDTextField(null=True, blank=True)
 
   def clean(self):
     """Validate model constraints"""
