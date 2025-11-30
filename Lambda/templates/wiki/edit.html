@@ -2,7 +2,7 @@
 {% load static %}
 
 {% block extra_css %}
-{# <link rel="stylesheet"href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@9.16.2/build/styles/default.min.css"> #}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/easymde/dist/easymde.min.css">
 {% endblock extra_css %}
 
 {% block title %}編集{% endblock title %}
@@ -50,9 +50,7 @@
     </div>
     {% endif %}
     <p>
-      {{ form.media }}
       {{ form.text }}
-      {# {{ form.media }} #}
     </p>
     {# <hr> #}
     {# <button type="submit" name="action" value="detail" class="button is-link"> #}
@@ -77,8 +75,23 @@
 {% endblock content %}
 
 {% block extra_js %}
-{# <script src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@9.16.2/build/highlight.min.js"></script> #}
-{# <script>hljs.initHighlightingOnLoad();</script> #}
+<script src="https://cdn.jsdelivr.net/npm/easymde/dist/easymde.min.js"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const textarea = document.getElementById('id_text');
+    if (textarea) {
+      const easyMDE = new EasyMDE({
+        element: textarea,
+        spellChecker: false,
+        autosave: {
+          enabled: true,
+          uniqueId: "wiki-editor-{{ form.instance.id|default:'new' }}",
+          delay: 1000,
+        },
+      });
+    }
+  });
+</script>
 {% if author %}
 <script src="{% static 'js/edit_permission.js' %}"></script>
 <script src="{% static 'js/share_edit_permission.js' %}"></script>
