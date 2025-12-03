@@ -6,4 +6,3 @@ psycopg2-binary>=2.9.0
 moto==5.1.9
 PyJWT[crypto]>=2.8.0
 beautifulsoup4>=4.12.0
-django-boost>=2.1

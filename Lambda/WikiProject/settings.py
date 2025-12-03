@@ -52,7 +52,6 @@ FORCE_SCRIPT_NAME = os.environ.get('SCRIPT_NAME', '')
 if USE_DSQL:
   INSTALLED_APPS = [
     'django.contrib.staticfiles',  # Static file management (for collectstatic)
-    'django_boost',  # Django extension library
     'accounts.apps.AccountsConfig',  # Custom app
     'wiki.apps.WikiConfig'  # Custom app
   ]
@@ -70,7 +69,6 @@ else:
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'django_boost',  # Django extension library
     'accounts.apps.AccountsConfig',  # Custom app
     'wiki.apps.WikiConfig'  # Custom app
   ]
