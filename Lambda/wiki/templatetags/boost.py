@@ -4,6 +4,9 @@ Provides utility filters like zip for template operations
 """
 from django import template
 
+# Save reference to built-in zip before it gets overwritten
+_builtin_zip = zip
+
 register = template.Library()
 
 
@@ -21,4 +24,4 @@ def zip(list1, list2):
   Returns:
     Zipped iterator of tuples
   """
-  return zip(list1, list2)
+  return _builtin_zip(list1, list2)
